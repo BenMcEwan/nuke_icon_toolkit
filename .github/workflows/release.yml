@@ -1,0 +1,26 @@
+name: Release
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create multiple archives
+        run: |
+          zip -r "nuke_icon_toolkit-${{ github.event.release.tag_name }}.zip" nuke_icon_toolkit/ -x "*.git*" "*.DS_Store" "*__pycache__*"
+          echo "ZIP_FILE=nuke_icon_toolkit-${{ github.event.release.tag_name }}.zip" >> $GITHUB_ENV
+          tar -czf "nuke_icon_toolkit-${{ github.event.release.tag_name }}.tar.gz" --exclude="*.git*" --exclude="*.DS_Store" --exclude="*__pycache__*" nuke_icon_toolkit/
+          echo "TAR_FILE=nuke_icon_toolkit-${{ github.event.release.tag_name }}.tar.gz" >> $GITHUB_ENV
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIP_FILE }}, ${{ env.TAR_FILE }}
